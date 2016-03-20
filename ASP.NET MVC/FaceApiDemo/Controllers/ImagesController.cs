@@ -2,6 +2,7 @@
 using Microsoft.ProjectOxford.Face.Contract;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -11,11 +12,16 @@ using System.Web.Mvc;
 
 namespace FaceApiDemo.Controllers
 {
-    public class HomeController : Controller
+    public class ImagesController : Controller
     {
-        private readonly IFaceServiceClient _faceServiceClient = new FaceServiceClient("Your key here");
+        private readonly IFaceServiceClient _faceServiceClient;
 
-        public ActionResult Index()
+        public ImagesController()
+        {
+             _faceServiceClient = new FaceServiceClient(ConfigurationManager.AppSettings["FaceApiKey"]);
+        }
+
+        public ActionResult Upload()
         {
             return View();
         }
@@ -24,7 +30,7 @@ namespace FaceApiDemo.Controllers
         {
             if (file == null)
             {
-                return View("Index");
+                return RedirectToAction("Upload");
             }
 
             var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
@@ -44,16 +50,19 @@ namespace FaceApiDemo.Controllers
         {
             Image img;
 
-            using (var stream = new MemoryStream())
+            using (var imageStream = new MemoryStream())
             {
-                file.InputStream.CopyTo(stream);
-                stream.Position = 0;
+                file.InputStream.CopyTo(imageStream);
+                imageStream.Position = 0;
 
-                var facePositions = await DetectFaces(stream);
+                // Detect faces and get rectangle positions.
+                var facePositions = await DetectFaces(imageStream);
 
-                img = DrawRectangles(stream, facePositions);
+                // Draw rectangles over original image.
+                img = DrawRectangles(imageStream, facePositions);
             }
 
+            // Save modified image with rectangles.
             var path = Path.Combine(Server.MapPath("~/Images"), fileName);
             img.Save(path);
             img.Dispose();
@@ -80,19 +89,16 @@ namespace FaceApiDemo.Controllers
 
         private Image DrawRectangles(Stream inputStream, IEnumerable<FaceRectangle> facesPosition)
         {
-            var pen = new Pen(Color.Red, 3);
-
             RectangleF[] rectangles =
                     facesPosition.Select(
                         rectangle => new RectangleF(rectangle.Left, rectangle.Top, rectangle.Width, rectangle.Height))
                         .ToArray();
 
             var img = Image.FromStream(inputStream);
-
-            // Draw line to screen.
+            
             using (var graphics = Graphics.FromImage(img))
             {
-                graphics.DrawRectangles(pen, rectangles);
+                graphics.DrawRectangles(new Pen(Color.Red, 3), rectangles);
             }
 
             return img;

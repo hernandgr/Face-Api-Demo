@@ -98,7 +98,10 @@ namespace FaceApiDemo.Controllers
             
             using (var graphics = Graphics.FromImage(img))
             {
-                graphics.DrawRectangles(new Pen(Color.Red, 3), rectangles);
+                if (rectangles.Any())
+                {
+                    graphics.DrawRectangles(new Pen(Color.Red, 3), rectangles);
+                }
             }
 
             return img;

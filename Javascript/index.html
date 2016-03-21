@@ -1,0 +1,27 @@
+<html>
+
+<head>
+    <title>Face detection using Project Oxford in javascript</title>
+</head>
+
+<body>
+    <div>
+        <label for="filename">Select image: </label>
+        <input type="file" id="filename" name="filename" accept="image/*">
+        <br />
+        <br />
+        <button id="btn">Detect faces</button>
+    </div>
+    <div>
+        <p id="response"></p>
+    </div>
+    <div>
+        <canvas id="myCanvas" width="1000" height="800">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+    </div>
+    <script src="js/jquery-2.2.2.min.js"></script>
+    <script src="js/faceDetection.js"></script>
+</body>
+
+</html>

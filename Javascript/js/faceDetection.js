@@ -8,7 +8,7 @@ $("#filename").change(function () {
 });
 
 function detectFaces(file) {
-    var apiKey = "31f51b09c8d84813b56fb08b8839e5ff";
+    var apiKey = "Your key here :)";
     
     // Call the API
     $.ajax({

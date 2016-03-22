@@ -168,7 +168,7 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Images\Upload.cshtml" />
-    <Content Include="Views\Images\View.cshtml" />
+    <Content Include="Views\Images\ViewFaces.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

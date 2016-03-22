@@ -33,22 +33,21 @@ namespace FaceApiDemo.Controllers
                 return RedirectToAction("Upload");
             }
 
-            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            
-            await UploadAndDetectFace(file, fileName);
+            byte[] resultImage = await UploadAndDetectFace(file);
 
-            return RedirectToAction("View", new { fileName });
+            TempData["resultImageBase64"] = GetImageBase64String(resultImage);
+            return RedirectToAction("ViewFaces");
         }
 
-        public ActionResult View(string fileName)
+        public ActionResult ViewFaces()
         {
-            ViewBag.ImageName = fileName;
+            ViewBag.ImageData = TempData["resultImageBase64"];
             return View();
         }
 
-        private async Task UploadAndDetectFace(HttpPostedFileBase file, string fileName)
+        private async Task<byte[]> UploadAndDetectFace(HttpPostedFileBase file)
         {
-            Image img;
+            byte[] resultImageBytes;
 
             using (var imageStream = new MemoryStream())
             {
@@ -59,13 +58,17 @@ namespace FaceApiDemo.Controllers
                 var facePositions = await DetectFaces(imageStream);
 
                 // Draw rectangles over original image.
-                img = DrawRectangles(imageStream, facePositions);
+                using (var img = DrawRectangles(imageStream, facePositions))
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        resultImageBytes = ms.ToArray();
+                    }
+                }
             }
 
-            // Save modified image with rectangles.
-            var path = Path.Combine(Server.MapPath("~/Images"), fileName);
-            img.Save(path);
-            img.Dispose();
+            return resultImageBytes;
         }
 
         private async Task<IEnumerable<FaceRectangle>> DetectFaces(Stream imageStream)
@@ -105,6 +108,12 @@ namespace FaceApiDemo.Controllers
             }
 
             return img;
+        }
+
+        private string GetImageBase64String(byte[] resultImage)
+        {
+            var imageBase64 = Convert.ToBase64String(resultImage);
+            return $"data:image/png;base64, {imageBase64}";
         }
     }
 }
